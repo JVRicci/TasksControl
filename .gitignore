@@ -1,1 +1,62 @@
 *.db
+# --- Segurança e Credenciais (CRÍTICO para APIs) ---
+.env
+.env.[a-zA-Z]*
+!.env.example
+secrets.toml
+
+# --- Ambientes Virtuais (Dependências) ---
+.venv/
+venv/
+ENV/
+env/
+target/
+
+# --- Caches do Python e Bytecodes ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# --- Arquivos específicos do Flask ---
+instance/
+.webassets-cache
+
+# --- Banco de Dados Local (Desenvolvimento) ---
+*.db
+*.sqlite3
+
+# --- Testes e Cobertura de Código ---
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+nosetests.xml
+.tox/
+
+# --- Distribuição e Empacotamento ---
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.installed.cfg
+*.egg-info/
+.mr.developer.cfg
+.buildout/
+wheels/
+share/python-wheels/
+
+# --- Configurações de IDEs e Editores ---
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+*~
+
+# --- Arquivos de Sistema ---
+.DS_Store
+Thumbs.db
