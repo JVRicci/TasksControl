@@ -9,9 +9,9 @@ class Settings(BaseSettings):
 
     DATABASE_URL: str
 
-    SECRET_KEY: str
-    JWT_ALGORITHM: str
-    JWT_ACCESS_TOKEN_EXPIRES_TIME: int
+    # SECRET_KEY: str
+    # JWT_ALGORITHM: str
+    # JWT_ACCESS_TOKEN_EXPIRES_TIME: int
 
     class Config:
         """Setting configuration"""
