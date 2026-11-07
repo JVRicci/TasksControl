@@ -29,6 +29,14 @@ class TestTaskRoute:
         client = app.test_client()
 
         # Act
+        client.post(
+            "/v1/users",
+            json={
+                "name": user_data.name,
+                "email": "test_user2@gmail.com",
+                "password": user_data.password,
+            },
+        )
         response = client.post(
             "/v1/tasks",
             json={

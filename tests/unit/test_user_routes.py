@@ -41,8 +41,11 @@ class TestUsersRoutes:
             },
         )
 
+        assert created_user.status_code == 201
+
+        user_id = created_user.get_json()["id"]
         response = client.get(
-            f"/v1/users/{created_user.id}",
+            f"/v1/users/{user_id}",
         )
 
         # assert
