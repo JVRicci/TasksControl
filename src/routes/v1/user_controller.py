@@ -4,7 +4,6 @@ from flask import jsonify, make_response, request
 from flask.views import MethodView
 
 from src.db.database import SessionLocal
-from src.schemas.user_schema import UserCreateSchema, UserResponseSchema
 from src.services.user_services import UserService
 
 logger = logging.getLogger(__name__)
@@ -29,7 +28,7 @@ class UserController(MethodView):
             data = jsonify(user.model_dump(mode="json"))
             return make_response(data, 201)
 
-    def get(self, user_id: int) -> UserResponseSchema:
+    def get(self, user_id: int):
         if not isinstance(user_id, int):
             logger.warning("GET /v1/users rejeitado: tipo do ID inválido")
             response = jsonify({"error": "ID inválido"})

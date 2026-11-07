@@ -29,7 +29,15 @@ class TestTaskRoute:
         client = app.test_client()
 
         # Act
-        response = client.post("/v1/tasks")
+        response = client.post(
+            "/v1/tasks",
+            json={
+                "title": task_data.title,
+                "description": task_data.description,
+                "completed": task_data.completed,
+                "user_id": 1,
+            },
+        )
 
         # Assert
         assert response.status_code == 201

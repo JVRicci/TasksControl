@@ -3,8 +3,14 @@ from sqlalchemy.orm import sessionmaker
 
 from src.core.settings import settings
 
+database_url = (
+    settings.TEST_DATABASE_URL
+    if settings.ENV == "test" and settings.TEST_DATABASE_URL
+    else settings.DATABASE_URL
+)
+
 engine = create_engine(
-    settings.DATABASE_URL,
+    database_url,
     echo=True,
     pool_size=20,
     max_overflow=0,
