@@ -11,6 +11,10 @@ class ITask(ABC):
         pass
 
     @abstractmethod
+    def get_by_user(self, task: int) -> list[dict]:
+        pass
+
+    @abstractmethod
     def update(self, task):
         pass
 
