@@ -1,3 +1,5 @@
+from typing import Optional
+
 from pydantic import BaseModel, ConfigDict, Field
 
 
@@ -20,3 +22,12 @@ class TaskResponseSchema(BaseModel):
     completed: bool = Field(False, description="Task status")
 
     user_id: int = Field(..., description="User identifier")
+
+
+class TaskUpdateSchema(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int = Field(..., description="Task identifier")
+    title: str = Field(None, description="Task name")
+    description: str = Field(None, description="Task description")
+    completed: bool = Field(False, description="Task status")

@@ -1,68 +1,53 @@
-from sqlalchemy import delete, select, update
-from sqlalchemy.exc import NoResultFound
-from sqlalchemy.orm import Session, selectinload
+from sqlalchemy import delete, select
+from sqlalchemy.orm import Session
 
 from src.domain.repositories.task_interface import ITask
 from src.models.task_model import Task
-from src.schemas.task_schema import TaskCreateSchema, TaskResponseSchema
+from src.schemas.task_schema import TaskCreateSchema, TaskUpdateSchema
 
 
 class SQLAlchemyTaskRepository(ITask):
     def __init__(self, db: Session):
         self.db = db
 
-    def create(self, data: TaskCreateSchema) -> dict:
-        stmt = Task(**data.model_dump())
+    def create(self, data: TaskCreateSchema) -> Task:
+        task = Task(**data.model_dump())
+        self.db.add(task)
 
-        self.db.add(stmt)
         self.db.commit()
-        self.db.refresh(stmt)
+        self.db.refresh(task)
+        return task
 
-        return stmt
+    def delete(self, id: int) -> bool:
+        stmt = delete(Task).where(Task.id == id)
+        result = self.db.execute(stmt)
+        self.db.commit()
 
-    def delete(self, id: int) -> dict:
-        try:
-            user = self.db.execute(select(Task).where(Task.id == id)).scalar_one()
-            stmt = self.db.delete(user)
-            self.db.commit()
+        return result.rowcount > 0
 
-            return stmt
+    def get_by_id(self, id: int) -> Task | None:
+        query = select(Task).where(Task.id == id)
+        return self.db.execute(query).scalar_one_or_none()
 
-        except NoResultFound:
-            self.db.rollback()
+    def get_by_user(self, user_id: int) -> list[Task]:
+        query = select(Task).where(Task.user_id == user_id)
+        return self.db.execute(query).scalars().all()
 
-            return {"erro": "Usuário não encontrado"}
+    def get_by_status(self, user_id: int, status: bool):
+        query = select(Task).where(Task.user_id == user_id, Task.completed == status)
+        return self.db.execute(query).scalars().all()
 
-    def get_by_id(self, id: int) -> list[dict] | dict:
-        query = select(Task).where(Task.id == id).limit(1)
+    def update(self, id: int, data: TaskUpdateSchema) -> Task | None:
+        query = select(Task).where(Task.id == id).with_for_update()
+        task = self.db.execute(query).scalar_one_or_none()
 
-        return self.db.execute(query).scalar()
+        if task is None:
+            return None
 
-    def get_by_user(self, user_id: int) -> list[dict]:
-        try:
-            query = select(Task).where(Task.user_id == user_id)
-            return list(self.db.execute(query).scalars().all())
+        task.title = data.title if data.title else task.title
+        task.description = data.description if data.description else task.description
+        task.completed = data.completed if data.completed else task.completed
 
-        except NoResultFound:
-            self.db.rollback()
-            return {"erro": "Nenhum registro encontrado"}
-
-    def update(self, data: TaskCreateSchema, user_id: int) -> dict | None:
-        try:
-            query = select(Task).where(Task.id == user_id).with_for_update()
-            task = self.db.execute(query).scalar_one_or_none()
-
-            if task is None:
-                return None
-
-            task.title = data.title
-            task.description = data.description
-            task.completed = data.completed
-
-            self.db.flush()
-            return task
-
-        except NoResultFound:
-            self.db.rollback()
-
-            return {"erro": "Usuário não encontrado"}
+        self.db.commit()
+        self.db.refresh(task)
+        return task
