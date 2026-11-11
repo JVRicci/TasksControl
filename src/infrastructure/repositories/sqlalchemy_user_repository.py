@@ -20,14 +20,12 @@ class SQLAlchemyUserRepository(IUser):
         return stmt
 
     def get_by_id(self, id: int) -> User | None:
-        stmt = self.db.get(User, id)
-
-        return stmt
+        query = select(User).where(User.id == id)
+        return self.db.execute(query).scalar_one_or_none()
 
     def get_by_email(self, email: str) -> User:
-        stmt = select(User).find_by(User.email == email)
-
-        return stmt
+        query = select(User).find_by(User.email == email)
+        return self.db.execute(query).scalar_one_or_none()
 
     def delete(self, id: int):
         pass

@@ -1,13 +1,13 @@
 import pytest
-
 from src.core.server import app
+from uuid import uuid4
 
 from src.models.user_model import User
 
 
 @pytest.mark.parametrize(
     ("user_data"),
-    [User(name="John Doe", email="test@gmail.com", password="testpassword")],
+    [User(name=uuid4(), email=f"{uuid4}@gmail.com", password=uuid4())],
 )
 class TestUsersRoutes:
     def test_a_user_creation(self, user_data):
@@ -36,7 +36,7 @@ class TestUsersRoutes:
             "/v1/users",
             json={
                 "name": user_data.name,
-                "email": "test_user2@gmail.com",
+                "email": user_data.email,
                 "password": user_data.password,
             },
         )
