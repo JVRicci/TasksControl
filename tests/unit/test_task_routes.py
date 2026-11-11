@@ -1,5 +1,4 @@
-import random
-import string
+import string, random
 
 import pytest
 from uuid import uuid4
@@ -123,17 +122,40 @@ class TestTaskRoute:
                 "id": task_response.json["id"],
                 "title": task_data.title,
                 "description": task_data.description,
-                "completed": task_data.completed,
+                "completed": True,
                 "user_id": user_id,
             },
         )
 
-        assert updated_response.status_code == 202
+        assert updated_response.status_code == 200
+
         # assert any(task["id"] == task_response.json["id"] for task in response.json)
 
-    # def test_delete_a_task(self, task_data, user_data):
-    #     client = app.test_client()
+    def test_delete_a_task(self, task_data, user_data):
+        client = app.test_client()
 
-    #     response = client.delete("/v1/tasks")
+        user_response = client.post(
+            "/v1/users",
+            json={
+                "name": user_data.name,
+                "email": f"{random_char(7)}@gmail.com",
+                "password": user_data.password,
+            },
+        )
+        assert user_response.status_code == 201
 
-    #     assert response.status_code == 204
+        user_id = user_response.json["id"]
+        task_response = client.post(
+            "/v1/tasks",
+            json={
+                "title": task_data.title,
+                "description": task_data.description,
+                "completed": task_data.completed,
+                "user_id": user_id,
+            },
+        )
+        assert task_response.status_code == 201
+
+        response = client.delete(f"/v1/tasks/{task_response.json["id"]}")
+
+        assert response.status_code == 204

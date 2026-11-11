@@ -1,13 +1,19 @@
+import string, random
+
 import pytest
-from src.core.server import app
 from uuid import uuid4
 
+from src.core.server import app
 from src.models.user_model import User
+
+
+def random_char(char_num):
+    return "".join(random.choice(string.ascii_letters) for _ in range(char_num))
 
 
 @pytest.mark.parametrize(
     ("user_data"),
-    [User(name=uuid4(), email=f"{uuid4}@gmail.com", password=uuid4())],
+    [User(name=uuid4(), email=f"{random_char(7)}@gmail.com", password=uuid4())],
 )
 class TestUsersRoutes:
     def test_a_user_creation(self, user_data):

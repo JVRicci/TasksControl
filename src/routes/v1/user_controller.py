@@ -39,3 +39,36 @@ def get_user(user_id: int):
 
         response = jsonify(user.model_dump(mode="json"))
         return make_response(response, 200)
+
+
+@api_bp.route("/<str:user_email>", methods=["GET"])
+def get_user_by_email(user_email):
+    with SessionLocal() as db:
+        user_service = UserService(db)
+
+        user = user_service.get_user_by_email(user_email)
+
+        response = jsonify(user.model_dump(mode="json"))
+
+        return make_response(response, 200)
+
+
+@api_bp.route("/<int: user_id>", method=["DELETE"])
+def delete_user(user_id):
+    with SessionLocal() as db:
+        user_service = UserService(db)
+
+        user_service.delete_user(user_id)
+
+    return make_response("", 204)
+
+
+@api_bp.route("/", methods="PATCH")
+def update_user():
+    data = request.get_json(silent=True)
+    with SessionLocal() as db:
+        user_service = UserService(db)
+
+        user = user_service.update_user(data)
+
+    return make_response(jsonify(user.model_dump()), 200)

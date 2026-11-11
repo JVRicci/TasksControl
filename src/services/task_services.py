@@ -2,12 +2,9 @@ import logging
 
 from sqlalchemy.orm import Session
 
-from src.infrastructure.repositories.sqlalchemy_task_repository import (
-    SQLAlchemyTaskRepository,
-)
-from src.infrastructure.repositories.sqlalchemy_user_repository import (
-    SQLAlchemyUserRepository,
-)
+from src.repositories.task_repository import TaskRepository
+from src.repositories.user_repository import UserRepository
+
 from src.schemas.task_schema import (
     TaskCreateSchema,
     TaskResponseSchema,
@@ -20,7 +17,7 @@ logger = logging.getLogger(__name__)
 class TaskService:
     def __init__(self, db: Session):
         self.db = db
-        self.repository = SQLAlchemyTaskRepository(db)
+        self.repository = TaskRepository(db)
 
     def create_task(self, data: TaskCreateSchema) -> TaskResponseSchema:
         """Create a new task method
@@ -30,7 +27,7 @@ class TaskService:
         """
         task_data = TaskCreateSchema.model_validate(data)
 
-        user_repository = SQLAlchemyUserRepository(self.db)
+        user_repository = UserRepository(self.db)
 
         if not user_repository.get_by_id(task_data.user_id):
             logger.warning("Não foi possivel criar tarefa. Usuário inválido.")
@@ -68,7 +65,7 @@ class TaskService:
         Returns:
             list[TaskResponseSchema]: _description_
         """
-        user_repository = SQLAlchemyUserRepository(self.db)
+        user_repository = UserRepository(self.db)
 
         if not user_repository.get_by_id(user_id):
             logger.warning("Não foi possível obter tarefa. Usuário inválido")
@@ -91,7 +88,7 @@ class TaskService:
         Returns:
             list[TaskResponseSchema]: _description_
         """
-        user_repository = SQLAlchemyUserRepository(self.db)
+        user_repository = UserRepository(self.db)
 
         if not user_repository.get_by_id(user_id):
             logger.warning("Não foi possível obter tarefa. Usuário inválido")
@@ -110,8 +107,23 @@ class TaskService:
         Returns:
             TaskResponseSchema: _description_
         """
-        update_values = TaskUpdateSchema(data)
 
-        stmt = self.repository.update(data.id, update_values)
+        update_values = TaskUpdateSchema.model_validate(data)
+
+        stmt = self.repository.update(update_values)
+
+        return TaskUpdateSchema.model_validate(stmt)
+
+    def delete_task(self, task_id: int) -> bool:
+        """Deleta uma tarefa com base no id
+
+        Args:
+            task_id (int): _description_
+
+        Returns:
+            bool: _description_
+        """
+
+        stmt = self.repository.delete(task_id)
 
         return stmt

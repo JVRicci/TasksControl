@@ -1,12 +1,11 @@
 from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
-from src.domain.repositories.task_interface import ITask
 from src.models.task_model import Task
 from src.schemas.task_schema import TaskCreateSchema, TaskUpdateSchema
 
 
-class SQLAlchemyTaskRepository(ITask):
+class TaskRepository:
     def __init__(self, db: Session):
         self.db = db
 
@@ -37,8 +36,8 @@ class SQLAlchemyTaskRepository(ITask):
         query = select(Task).where(Task.user_id == user_id, Task.completed == status)
         return self.db.execute(query).scalars().all()
 
-    def update(self, id: int, data: TaskUpdateSchema) -> Task | None:
-        query = select(Task).where(Task.id == id).with_for_update()
+    def update(self, data: TaskUpdateSchema) -> Task | None:
+        query = select(Task).where(Task.id == data.id).with_for_update()
         task = self.db.execute(query).scalar_one_or_none()
 
         if task is None:

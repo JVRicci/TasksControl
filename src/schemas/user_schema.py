@@ -16,3 +16,12 @@ class UserResponseSchema(BaseModel):
     name: str = Field(..., description="Username")
     email: EmailStr = Field(..., description="User e-mail")
     password: str = Field(..., description="User password")
+
+
+class UserUpdateSchema(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int = Field(..., description="User identifier")
+    name: str = Field(None, description="Username")
+    email: str = Field(None, description="User e-mail")
+    password: str = Field(..., description="User password")

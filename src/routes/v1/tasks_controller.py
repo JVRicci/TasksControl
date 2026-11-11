@@ -103,7 +103,7 @@ def get_task_by_id(task_id: int):
 
 @api_bp.route("", methods=["PATCH"])
 def update_task():
-    data = request.get_json()
+    data = request.get_json(silent=True)
 
     try:
         with SessionLocal() as session:
