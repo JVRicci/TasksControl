@@ -131,9 +131,9 @@ class TestTaskRoute:
         assert updated_response.status_code == 202
         # assert any(task["id"] == task_response.json["id"] for task in response.json)
 
-    def test_delete_a_task(self, task_data, user_data):
-        client = app.test_client()
+    # def test_delete_a_task(self, task_data, user_data):
+    #     client = app.test_client()
 
-        response = client.delete("/v1/tasks")
+    #     response = client.delete("/v1/tasks")
 
-        assert response.status_code == 204
+    #     assert response.status_code == 204

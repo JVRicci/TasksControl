@@ -1,42 +1,41 @@
 import logging
 
-from flask import jsonify, make_response, request
-from flask.views import MethodView
+from flask import Blueprint, jsonify, make_response, request
 
 from src.db.database import SessionLocal
 from src.services.user_services import UserService
 
 logger = logging.getLogger(__name__)
 
+api_bp = Blueprint("users", __name__, url_prefix="/users")
 
-class UserController(MethodView):
-    def __init__(self):
-        self.__db = SessionLocal()
 
-    def post(self):
-        data = request.get_json(silent=True)
+@api_bp.route("", methods=["POST"])
+def create_user():
+    data = request.get_json(silent=True)
 
-        if not isinstance(data, dict):
-            logger.warning("POST /v1/users rejeitado: corpo JSON ausente ou inválido")
-            response = jsonify({"error": "Envie um objeto JSON válido"})
-            return make_response(response, 406)
+    if not isinstance(data, dict):
+        logger.warning("POST /v1/users rejeitado: corpo JSON ausente ou inválido")
+        return make_response(
+            jsonify({"error": "Envie um objeto JSON válido"}),
+            400,
+        )
 
-        with self.__db as db:
-            user_service = UserService(db)
+    with SessionLocal() as db:
+        user_service = UserService(db)
 
-            user = user_service.create_user(data)
-            data = jsonify(user.model_dump(mode="json"))
-            return make_response(data, 201)
+        user = user_service.create_user(data)
 
-    def get(self, user_id: int):
-        if not isinstance(user_id, int):
-            logger.warning("GET /v1/users rejeitado: tipo do ID inválido")
-            response = jsonify({"error": "ID inválido"})
-            return make_response(response, 406)
+        response = jsonify(user.model_dump(mode="json"))
+        return make_response(response, 201)
 
-        with self.__db as db:
-            user_service = UserService(db)
 
-            user = user_service.get_user_by_id(user_id)
-            response = jsonify(user.model_dump(mode="json"))
-            return make_response(response, 200)
+@api_bp.route("/<int:user_id>", methods=["GET"])
+def get_user(user_id: int):
+    with SessionLocal() as db:
+        user_service = UserService(db)
+
+        user = user_service.get_user_by_id(user_id)
+
+        response = jsonify(user.model_dump(mode="json"))
+        return make_response(response, 200)
