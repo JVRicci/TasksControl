@@ -14,6 +14,7 @@ class UserRepository(IRepository):
         stmt = User(**data.model_dump())
         self.db.add(stmt)
         self.db.flush()
+        self.db.commit()
         self.db.refresh(stmt)
         return stmt
 

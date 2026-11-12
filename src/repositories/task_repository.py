@@ -14,6 +14,7 @@ class TaskRepository(IRepository):
         task = Task(**data.model_dump())
         self.db.add(task)
         self.db.flush()
+        self.db.commit()
         self.db.refresh(task)
         return task
 

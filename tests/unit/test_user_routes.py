@@ -1,7 +1,8 @@
-import string, random
+import random
+import string
+from uuid import uuid4
 
 import pytest
-from uuid import uuid4
 
 from src.core.server import app
 from src.models.user_model import User
@@ -42,7 +43,7 @@ class TestUsersRoutes:
             "/v1/users",
             json={
                 "name": user_data.name,
-                "email": user_data.email,
+                "email": f"{random_char(7)}@gmail.com",
                 "password": user_data.password,
             },
         )

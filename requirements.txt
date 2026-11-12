@@ -7,6 +7,7 @@ email-validator==2.3.0
 flasgger==0.9.7.1
 Flask==3.1.3
 flask-cors==6.0.5
+Flask-JWT-Extended==4.7.4
 Flask-SQLAlchemy==3.1.1
 idna==3.20
 iniconfig==2.3.1
@@ -22,6 +23,7 @@ pydantic==2.14.2
 pydantic-settings==2.16.2
 pydantic_core==2.50.2
 Pygments==2.21.0
+PyJWT==2.15.1
 pytest==9.2.0
 pytest-env==1.8.5
 python-dotenv==1.2.4
@@ -34,4 +36,3 @@ SQLAlchemy==2.1.6
 typing-inspection==0.4.4
 typing_extensions==4.16.0
 Werkzeug==3.1.9
-Flask-JWT-Extended==4.7.4

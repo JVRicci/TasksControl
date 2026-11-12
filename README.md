@@ -134,7 +134,7 @@ As respostas de criação usam HTTP `201`; consultas e atualizações usam `200`
 Com as dependências instaladas e o arquivo `.env` configurado:
 
 ```bash
-pytest
+python -m pytest
 ```
 
 O `pytest.ini` define `ENV=test`, então os testes usam a URL indicada em `TEST_DATABASE_URL`.
