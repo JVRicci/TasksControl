@@ -4,8 +4,8 @@ from flask import Blueprint, jsonify, make_response, request
 from pydantic import ValidationError
 
 from src.db.database import SessionLocal
-from src.services.task_services import TaskService
 from src.schemas.task_query_schema import TaskQuerySchema
+from src.services.task_services import TaskService
 
 logger = logging.getLogger(__name__)
 

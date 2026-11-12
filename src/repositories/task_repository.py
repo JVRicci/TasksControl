@@ -2,18 +2,18 @@ from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
 from src.models.task_model import Task
+from src.repositories.contract.repository_interface import IRepository
 from src.schemas.task_schema import TaskCreateSchema, TaskUpdateSchema
 
 
-class TaskRepository:
+class TaskRepository(IRepository):
     def __init__(self, db: Session):
         self.db = db
 
     def create(self, data: TaskCreateSchema) -> Task:
         task = Task(**data.model_dump())
         self.db.add(task)
-
-        self.db.commit()
+        self.db.flush()
         self.db.refresh(task)
         return task
 

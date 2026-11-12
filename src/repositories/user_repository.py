@@ -2,20 +2,19 @@ from sqlalchemy import delete, select, update
 from sqlalchemy.orm import Session
 
 from src.models.user_model import User
+from src.repositories.contract.repository_interface import IRepository
 from src.schemas.user_schema import UserCreateSchema, UserResponseSchema
 
 
-class UserRepository:
+class UserRepository(IRepository):
     def __init__(self, db: Session):
         self.db = db
 
     def create(self, data: UserCreateSchema) -> UserResponseSchema:
         stmt = User(**data.model_dump())
-
         self.db.add(stmt)
-        self.db.commit()
+        self.db.flush()
         self.db.refresh(stmt)
-
         return stmt
 
     def get_by_id(self, id: int) -> User | None:

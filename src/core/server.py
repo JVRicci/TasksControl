@@ -6,6 +6,7 @@ from flask import Flask
 
 from src.db.base import Base
 from src.db.database import engine
+from src.models.idempotency_model import IdempotencyRecord
 from src.routes.health_check import api_bp as health_bp
 from src.routes.v1.router import api_bp as api_v1_bp
 
