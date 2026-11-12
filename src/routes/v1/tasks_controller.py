@@ -1,6 +1,6 @@
 import logging
 
-from flask import Blueprint, request, jsonify, make_response
+from flask import Blueprint, jsonify, make_response, request
 from pydantic import ValidationError
 
 from src.db.database import SessionLocal
@@ -27,6 +27,10 @@ def create_task():
             )
 
     except ValidationError as exc:
+        logger.warning(
+            "POST /v1/tasks rejected: Erro ao cadastrar tarefa. Dados inválidos. \nDetalhes: {exc}"
+        )
+
         return make_response(
             jsonify(
                 {
@@ -38,6 +42,10 @@ def create_task():
         )
 
     except ValueError as exc:
+        logger.warning(
+            "POST /v1/tasks rejected: Erro ao cadastrar tarefa. \nDetalhes: {exc}"
+        )
+
         return make_response(
             jsonify({"error": str(exc)}),
             404,
@@ -65,6 +73,10 @@ def get_tasks():
             return make_response(jsonify(response), 200)
 
     except ValidationError as exc:
+        logger.warning(
+            "GET /v1/tasks rejected: Erro ao validar tarefa. \nDetalhes: {exc}"
+        )
+
         return make_response(
             jsonify(
                 {
@@ -76,6 +88,10 @@ def get_tasks():
         )
 
     except ValueError as exc:
+        logger.warning(
+            "GET /v1/tasks rejected: Erro ao cadastrar tarefa. Dados inválidos. \nDetalhes: {exc}"
+        )
+
         return make_response(
             jsonify({"error": str(exc)}),
             404,
@@ -95,6 +111,10 @@ def get_task_by_id(task_id: int):
             )
 
     except ValueError as exc:
+        logger.warning(
+            "GET /v1/tasks rejected: Erro ao buscar tarefa. \nDetalhes: {exc}"
+        )
+
         return make_response(
             jsonify({"error": str(exc)}),
             404,
@@ -116,6 +136,10 @@ def update_task():
             )
 
     except ValidationError as exc:
+        logger.warning(
+            "PATCH /v1/tasks rejected: Erro ao atualizar tarefa. \nDetalhes: {exc}"
+        )
+
         return make_response(
             jsonify(
                 {
@@ -127,6 +151,10 @@ def update_task():
         )
 
     except ValueError as exc:
+        logger.warning(
+            "POST /v1/tasks rejected: Erro ao atualizar tarefa. \nDetalhes: {exc}"
+        )
+
         return make_response(
             jsonify({"error": str(exc)}),
             404,
@@ -135,8 +163,14 @@ def update_task():
 
 @api_bp.route("/<int:task_id>", methods=["DELETE"])
 def delete_task(task_id: int):
-    with SessionLocal() as session:
-        task_service = TaskService(session)
-        task_service.delete_task(task_id)
+    try:
+        with SessionLocal() as session:
+            task_service = TaskService(session)
+            task_service.delete_task(task_id)
 
-    return make_response("", 204)
+        return make_response("", 204)
+    except ValidationError as exc:
+        logger.warning(
+            f"DELETE /v1/tasks/{task_id} rejected: tarefa inválido ou inexistente. \nDetalhes: {exc}"
+        )
+        return make_response(jsonify("Tarefa inválida"), 400)
