@@ -12,9 +12,8 @@ class Settings(BaseSettings):
 
     TEST_DATABASE_URL: str
 
-    # SECRET_KEY: str
-    # JWT_ALGORITHM: str
-    # JWT_ACCESS_TOKEN_EXPIRES_TIME: int
+    JWT_SECRET_KEY: str
+    JWT_ACCESS_TOKEN_EXPIRES_MINUTES: int = 15
 
     model_config = ConfigDict(env_file=".env", env_file_encoding="utf-8")
 

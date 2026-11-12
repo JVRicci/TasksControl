@@ -1,6 +1,7 @@
 import logging
 
 from sqlalchemy.orm import Session
+from werkzeug.security import generate_password_hash
 
 from src.repositories.task_repository import TaskRepository
 from src.repositories.user_repository import UserRepository
@@ -27,7 +28,9 @@ class UserService:
         Returns:
             UserResponseSchema: User object
         """
-        user_data = UserCreateSchema.model_validate(data)
+        user_data = data.model_copy(
+            update={"password": generate_password_hash(data.password)}
+        )
 
         stmt = self.repository.create(user_data)
 
