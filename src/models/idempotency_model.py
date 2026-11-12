@@ -14,4 +14,6 @@ class IdempotencyRecord(Base):
     response_status: Mapped[int | None] = mapped_column(nullable=True)
     response_body: Mapped[dict | None] = mapped_column(JSON, nullable=True)
 
-    __table_args__ = UniqueConstraint("scope", "key", name="uq_idempotency_scope_key")
+    __table_args__ = (
+        UniqueConstraint("scope", "key", name="uq_idempotency_scope_key"),
+    )
