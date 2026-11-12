@@ -2,7 +2,7 @@
 
 API REST para cadastro e gerenciamento de usuários e tarefas. Cada tarefa pertence a um usuário e pode ser marcada como concluída. O projeto demonstra uma organização em camadas com Flask, validação de dados e persistência relacional.
 
-> **Atenção:** a API ainda não implementa autenticação e atualmente armazena e devolve senhas sem proteção. Use apenas em desenvolvimento/estudo; não a utilize com dados reais sem implementar, no mínimo, hash de senhas e autenticação.
+<!-- > **Atenção:** a API ainda não implementa autenticação e atualmente armazena e devolve senhas sem proteção. Use apenas em desenvolvimento/estudo; não a utilize com dados reais sem implementar, no mínimo, hash de senhas e autenticação. -->
 
 ## Funcionalidades
 
