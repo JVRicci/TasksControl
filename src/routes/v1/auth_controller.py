@@ -14,7 +14,7 @@ auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 
 
 class AuthController(MethodView):
-    def __init__(self, session):
+    def __init__(self):
         self.session = SessionLocal()
 
     def post(self):
