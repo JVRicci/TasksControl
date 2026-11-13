@@ -28,10 +28,8 @@ class UserService:
         Returns:
             UserResponseSchema: User object
         """
-        user_schema = UserCreateSchema.model_validate(data)
-
-        user_data = user_schema.model_copy(
-            update={"password": generate_password_hash(data.get("password"))}
+        user_data = data.model_copy(
+            update={"password": generate_password_hash(data.password)}
         )
 
         stmt = self.repository.create(user_data)
@@ -39,7 +37,7 @@ class UserService:
         return UserResponseSchema.model_validate(stmt)
 
     def get_user_by_id(self, id: int) -> UserResponseSchema:
-        stmt = self.repository.get_by_id(id)
+        stmt = self.repository.get_user_by_id(id)
 
         return UserResponseSchema.model_validate(stmt)
 
@@ -60,7 +58,9 @@ class UserService:
 
         return stmt
 
-    def update_user(self, user_data: UserUpdateSchema) -> UserResponseSchema:
-        stmt = self.repository.update(user_data)
+    def update_user(
+        self, user_id: int, user_data: UserUpdateSchema
+    ) -> UserResponseSchema:
+        stmt = self.repository.update(user_id, user_data)
 
         return UserResponseSchema.model_validate(stmt)

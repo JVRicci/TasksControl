@@ -10,8 +10,6 @@ class TaskCreateSchema(BaseModel):
     description: str = Field(..., description="Task description")
     completed: bool = Field(False, description="Task status")
 
-    user_id: int = Field(..., description="User identifier")
-
 
 class TaskResponseSchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)

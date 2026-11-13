@@ -1,9 +1,11 @@
 import logging
 
 from flask import Blueprint, jsonify, make_response, request
+from flask_jwt_extended import get_jwt_identity, jwt_required
 from pydantic import ValidationError
 
 from src.db.database import SessionLocal
+from src.schemas.user_schema import UserCreateSchema
 from src.services.user_services import UserService
 
 logger = logging.getLogger(__name__)
@@ -26,7 +28,7 @@ def create_user():
         with SessionLocal() as db:
             user_service = UserService(db)
 
-            user = user_service.create_user(data)
+            user = user_service.create_user(UserCreateSchema.model_validate(data))
 
             response = jsonify(user.model_dump(mode="json"))
             return make_response(response, 201)
@@ -56,7 +58,9 @@ def create_user():
 
 
 @api_bp.route("/<int:user_id>", methods=["GET"])
+@jwt_required()
 def get_user(user_id: int):
+    user_id = int(get_jwt_identity())
     try:
         with SessionLocal() as db:
             user_service = UserService(db)
@@ -78,6 +82,7 @@ def get_user(user_id: int):
 
 
 @api_bp.route("/<string:user_email>", methods=["GET"])
+@jwt_required()
 def get_user_by_email(user_email):
     try:
         with SessionLocal() as db:
@@ -100,8 +105,10 @@ def get_user_by_email(user_email):
         )
 
 
-@api_bp.route("/<int:user_id>", methods=["DELETE"])
-def delete_user(user_id):
+@api_bp.route("/", methods=["DELETE"])
+@jwt_required()
+def delete_user():
+    user_id = int(get_jwt_identity())
     try:
         with SessionLocal() as db:
             user_service = UserService(db)
@@ -122,13 +129,15 @@ def delete_user(user_id):
 
 
 @api_bp.route("", methods=["PATCH"])
+@jwt_required()
 def update_user():
+    user_id = int(get_jwt_identity())
     try:
         data = request.get_json(silent=True)
         with SessionLocal() as db:
             user_service = UserService(db)
 
-            user = user_service.update_user(data)
+            user = user_service.update_user(user_id, data)
 
         return make_response(jsonify(user.model_dump()), 200)
 

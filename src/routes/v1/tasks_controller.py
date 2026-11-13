@@ -1,6 +1,7 @@
 import logging
 
 from flask import Blueprint, jsonify, make_response, request
+from flask_jwt_extended import get_jwt_identity, jwt_required
 from pydantic import ValidationError
 
 from src.db.database import SessionLocal
@@ -13,13 +14,15 @@ api_bp = Blueprint("tasks", __name__, url_prefix="/tasks")
 
 
 @api_bp.route("", methods=["POST"])
+@jwt_required()
 def create_task():
     data = request.get_json(silent=True)
+    user_id = int(get_jwt_identity())
 
     try:
         with SessionLocal() as session:
             task_service = TaskService(session)
-            task = task_service.create_task(data)
+            task = task_service.create_task(user_id, data)
 
             return make_response(
                 jsonify(task.model_dump(mode="json")),
@@ -53,7 +56,10 @@ def create_task():
 
 
 @api_bp.route("", methods=["GET"])
+@jwt_required()
 def get_tasks():
+    user_id = int(get_jwt_identity())
+
     try:
         query = TaskQuerySchema.model_validate(request.args.to_dict())
 
@@ -61,10 +67,10 @@ def get_tasks():
             task_service = TaskService(session)
 
             if query.completed is None:
-                tasks = task_service.get_by_user(query.user_id)
+                tasks = task_service.get_by_user(user_id)
             else:
                 tasks = task_service.get_by_status(
-                    query.user_id,
+                    user_id,
                     query.completed,
                 )
 
@@ -99,11 +105,14 @@ def get_tasks():
 
 
 @api_bp.route("/<int:task_id>", methods=["GET"])
+@jwt_required()
 def get_task_by_id(task_id: int):
+    user_id = int(get_jwt_identity())
+
     try:
         with SessionLocal() as session:
             task_service = TaskService(session)
-            task = task_service.get_task_by_id(task_id)
+            task = task_service.get_task_by_id(user_id, task_id)
 
             return make_response(
                 jsonify(task.model_dump(mode="json")),
@@ -122,13 +131,15 @@ def get_task_by_id(task_id: int):
 
 
 @api_bp.route("", methods=["PATCH"])
+@jwt_required()
 def update_task():
     data = request.get_json(silent=True)
+    user_id = int(get_jwt_identity())
 
     try:
         with SessionLocal() as session:
             task_service = TaskService(session)
-            task = task_service.update_task(data)
+            task = task_service.update_task(user_id, data)
 
             return make_response(
                 jsonify(task.model_dump(mode="json")),
@@ -162,11 +173,14 @@ def update_task():
 
 
 @api_bp.route("/<int:task_id>", methods=["DELETE"])
+@jwt_required()
 def delete_task(task_id: int):
+    user_id = int(get_jwt_identity())
+
     try:
         with SessionLocal() as session:
             task_service = TaskService(session)
-            task_service.delete_task(task_id)
+            task_service.delete_task(user_id, task_id)
 
         return make_response("", 204)
     except ValidationError as exc:

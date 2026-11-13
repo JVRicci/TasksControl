@@ -1,9 +1,12 @@
 import logging
+from datetime import timedelta
 from pathlib import Path
 
 from flasgger import Swagger
 from flask import Flask
+from flask_jwt_extended import JWTManager
 
+from src.core.settings import settings
 from src.db.base import Base
 from src.db.database import engine
 from src.models.idempotency_model import IdempotencyRecord
@@ -14,6 +17,13 @@ from src.routes.v1.router import api_bp as api_v1_bp
 Base.metadata.create_all(bind=engine)
 
 app = Flask(__name__)
+
+app.config["JWT_SECRET_KEY"] = settings.JWT_SECRET_KEY
+app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(
+    minutes=settings.JWT_ACCESS_TOKEN_EXPIRES_MINUTES
+)
+
+jwt_manager = JWTManager(app)
 
 swagger_file = Path(__file__).resolve().parents[2] / "swagger.yml"
 

@@ -34,8 +34,8 @@ class UserRepository(IRepository):
 
         return result.rowcount > 0
 
-    def update(self, data: UserCreateSchema) -> User | None:
-        query = select(User).where(User.id == data.id).with_for_update()
+    def update(self, user_id: int, data: UserCreateSchema) -> User | None:
+        query = select(User).where(User.id == user_id).with_for_update()
         user = self.db.execute(query).scalar_one_or_none()
 
         if user is None:

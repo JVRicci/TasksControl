@@ -19,7 +19,7 @@ class TaskService:
         self.db = db
         self.repository = TaskRepository(db)
 
-    def create_task(self, data: TaskCreateSchema) -> TaskResponseSchema:
+    def create_task(self, user_id: int, data: TaskCreateSchema) -> TaskResponseSchema:
         """Create a new task method
 
         Args:
@@ -29,15 +29,15 @@ class TaskService:
 
         user_repository = UserRepository(self.db)
 
-        if not user_repository.get_by_id(task_data.user_id):
+        if not user_repository.get_by_id(user_id):
             logger.warning("Não foi possivel criar tarefa. Usuário inválido.")
             raise ValueError("Usuário inválido")
 
-        stmt = self.repository.create(task_data)
+        stmt = self.repository.create(user_id, task_data)
 
         return TaskResponseSchema.model_validate(stmt)
 
-    def get_task_by_id(self, task_id: int) -> TaskResponseSchema:
+    def get_task_by_id(self, user_id: int, task_id: int) -> TaskResponseSchema:
         """Retorna uma tarefa com base no ID dela
 
         Args:
@@ -46,7 +46,7 @@ class TaskService:
         Returns:
             TaskResponseSchema: _description_
         """
-        stmt = self.repository.get_by_id(task_id)
+        stmt = self.repository.get_by_id(user_id, task_id)
 
         if stmt is None:
             raise ValueError("Tarefa não encontrada")
@@ -98,7 +98,7 @@ class TaskService:
 
         return [TaskResponseSchema.model_validate(task) for task in task_list]
 
-    def update_task(self, data: TaskUpdateSchema) -> TaskResponseSchema:
+    def update_task(self, user_id: int, data: TaskUpdateSchema) -> TaskResponseSchema:
         """Atualiza dados de uma tarefa
 
         Args:
@@ -110,11 +110,11 @@ class TaskService:
 
         update_values = TaskUpdateSchema.model_validate(data)
 
-        stmt = self.repository.update(update_values)
+        stmt = self.repository.update(user_id, update_values)
 
         return TaskUpdateSchema.model_validate(stmt)
 
-    def delete_task(self, task_id: int) -> bool:
+    def delete_task(self, user_id: int, task_id: int) -> bool:
         """Deleta uma tarefa com base no id
 
         Args:
@@ -124,6 +124,6 @@ class TaskService:
             bool: _description_
         """
 
-        stmt = self.repository.delete(task_id)
+        stmt = self.repository.delete(user_id, task_id)
 
         return stmt

@@ -10,23 +10,27 @@ class TaskRepository(IRepository):
     def __init__(self, db: Session):
         self.db = db
 
-    def create(self, data: TaskCreateSchema) -> Task:
-        task = Task(**data.model_dump())
+    def create(self, user_id: int, data: TaskCreateSchema) -> Task:
+        task = Task(**data.model_dump(), user_id=user_id)
         self.db.add(task)
         self.db.flush()
         self.db.commit()
         self.db.refresh(task)
         return task
 
-    def delete(self, id: int) -> bool:
-        stmt = delete(Task).where(Task.id == id)
+    def delete(self, user_id: int, task_id: int) -> bool:
+
+        stmt = delete(Task).where(
+            Task.id == task_id,
+            Task.user_id == user_id,
+        )
         result = self.db.execute(stmt)
         self.db.commit()
 
         return result.rowcount > 0
 
-    def get_by_id(self, id: int) -> Task | None:
-        query = select(Task).where(Task.id == id)
+    def get_by_id(self, user_id: int, task_id: int) -> Task | None:
+        query = select(Task).where(Task.id == task_id, Task.user_id == user_id)
         return self.db.execute(query).scalar_one_or_none()
 
     def get_by_user(self, user_id: int) -> list[Task]:
@@ -37,8 +41,13 @@ class TaskRepository(IRepository):
         query = select(Task).where(Task.user_id == user_id, Task.completed == status)
         return self.db.execute(query).scalars().all()
 
-    def update(self, data: TaskUpdateSchema) -> Task | None:
-        query = select(Task).where(Task.id == data.id).with_for_update()
+    def update(self, user_id: int, data: TaskUpdateSchema) -> Task | None:
+        query = (
+            select(Task)
+            .where(Task.id == data.id, Task.user_id == user_id)
+            .with_for_update()
+        )
+
         task = self.db.execute(query).scalar_one_or_none()
 
         if task is None:
