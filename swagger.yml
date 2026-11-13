@@ -9,9 +9,18 @@ consumes:
 produces:
   - application/json
 
+securityDefinitions:
+  BearerAuth:
+    type: apiKey
+    name: Authorization
+    in: header
+    description: Informe o token como "Bearer <access_token>".
+
 tags:
   - name: Health
     description: Verificação de saúde da API
+  - name: Auth
+    description: Autenticação e emissão de token de acesso
   - name: Tasks
     description: Operações de tarefas
   - name: Users
@@ -30,12 +39,38 @@ paths:
           schema:
             $ref: "#/definitions/HealthResponse"
 
+  /v1/auth/login:
+    post:
+      tags:
+        - Auth
+      summary: Autentica o usuário e emite um token
+      description: Use o token retornado no cabeçalho Authorization das rotas protegidas.
+      operationId: login
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema:
+            $ref: "#/definitions/AuthCredentials"
+      responses:
+        "200":
+          description: Login realizado
+          schema:
+            $ref: "#/definitions/AccessToken"
+        "401":
+          description: E-mail ou senha inválidos
+          schema:
+            $ref: "#/definitions/Error"
+
   /v1/tasks:
     post:
       tags:
         - Tasks
       summary: Cria uma tarefa
+      description: O proprietário da tarefa é definido pelo usuário autenticado, não pelo corpo da requisição.
       operationId: createTask
+      security:
+        - BearerAuth: []
       parameters:
         - in: body
           name: body
@@ -53,23 +88,24 @@ paths:
           schema:
             $ref: "#/definitions/ValidationError"
         "404":
-          description: Usuário informado não encontrado
+          description: Usuário associado ao token não encontrado
           schema:
             $ref: "#/definitions/Error"
+        "401":
+          description: Token ausente ou inválido
+          schema:
+            $ref: "#/definitions/JwtError"
     get:
       tags:
         - Tasks
       summary: Lista tarefas de um usuário
       description: >-
-        Informe user_id para listar as tarefas do usuário. O parâmetro
-        completed é opcional, mas só pode ser informado junto com user_id.
+        Lista somente as tarefas do usuário autenticado. O parâmetro completed
+        é opcional e filtra pelo estado de conclusão.
       operationId: getTasks
+      security:
+        - BearerAuth: []
       parameters:
-        - in: query
-          name: user_id
-          type: integer
-          required: false
-          description: Identificador do usuário.
         - in: query
           name: completed
           type: boolean
@@ -87,15 +123,21 @@ paths:
           schema:
             $ref: "#/definitions/ValidationError"
         "404":
-          description: Usuário informado não encontrado
+          description: Usuário associado ao token não encontrado
           schema:
             $ref: "#/definitions/Error"
+        "401":
+          description: Token ausente ou inválido
+          schema:
+            $ref: "#/definitions/JwtError"
     patch:
       tags:
         - Tasks
       summary: Atualiza uma tarefa
-      description: O campo id identifica a tarefa; os demais campos podem ser enviados para atualização.
+      description: Atualiza somente uma tarefa pertencente ao usuário autenticado.
       operationId: updateTask
+      security:
+        - BearerAuth: []
       parameters:
         - in: body
           name: body
@@ -115,6 +157,10 @@ paths:
           description: Tarefa não encontrada
           schema:
             $ref: "#/definitions/Error"
+        "401":
+          description: Token ausente ou inválido
+          schema:
+            $ref: "#/definitions/JwtError"
 
   /v1/tasks/{task_id}:
     parameters:
@@ -127,7 +173,10 @@ paths:
       tags:
         - Tasks
       summary: Busca uma tarefa pelo ID
+      description: A tarefa só é retornada se pertencer ao usuário autenticado.
       operationId: getTaskById
+      security:
+        - BearerAuth: []
       responses:
         "200":
           description: Tarefa encontrada
@@ -137,11 +186,18 @@ paths:
           description: Tarefa não encontrada
           schema:
             $ref: "#/definitions/Error"
+        "401":
+          description: Token ausente ou inválido
+          schema:
+            $ref: "#/definitions/JwtError"
     delete:
       tags:
         - Tasks
       summary: Exclui uma tarefa
+      description: Exclui somente uma tarefa pertencente ao usuário autenticado.
       operationId: deleteTask
+      security:
+        - BearerAuth: []
       responses:
         "204":
           description: Tarefa excluída ou inexistente
@@ -149,6 +205,10 @@ paths:
           description: Tarefa inválida
           schema:
             $ref: "#/definitions/Error"
+        "401":
+          description: Token ausente ou inválido
+          schema:
+            $ref: "#/definitions/JwtError"
 
   /v1/users:
     post:
@@ -180,8 +240,10 @@ paths:
       tags:
         - Users
       summary: Atualiza um usuário
-      description: O campo id identifica o usuário; password é obrigatório no corpo da requisição.
+      description: Atualiza o cadastro do usuário autenticado.
       operationId: updateUser
+      security:
+        - BearerAuth: []
       parameters:
         - in: body
           name: body
@@ -201,6 +263,10 @@ paths:
           description: Usuário não encontrado
           schema:
             $ref: "#/definitions/Error"
+        "401":
+          description: Token ausente ou inválido
+          schema:
+            $ref: "#/definitions/JwtError"
 
   /v1/users/{user_id}:
     get:
@@ -212,6 +278,8 @@ paths:
         textual para buscar por e-mail. A aplicação seleciona a rota pelo tipo
         do valor recebido.
       operationId: getUserByIdOrEmail
+      security:
+        - BearerAuth: []
       parameters:
         - name: user_id
           in: path
@@ -227,18 +295,20 @@ paths:
           description: Usuário não encontrado
           schema:
             $ref: "#/definitions/Error"
+        "401":
+          description: Token ausente ou inválido
+          schema:
+            $ref: "#/definitions/JwtError"
+
+  /v1/users/:
     delete:
       tags:
         - Users
-      summary: Exclui um usuário
+      summary: Exclui o usuário autenticado
       description: A exclusão falha se o usuário possuir tarefas associadas.
       operationId: deleteUser
-      parameters:
-        - name: user_id
-          in: path
-          required: true
-          type: integer
-          description: Identificador do usuário.
+      security:
+        - BearerAuth: []
       responses:
         "204":
           description: Usuário excluído
@@ -246,6 +316,10 @@ paths:
           description: Usuário não encontrado ou possui tarefas associadas
           schema:
             $ref: "#/definitions/Error"
+        "401":
+          description: Token ausente ou inválido
+          schema:
+            $ref: "#/definitions/JwtError"
 
 definitions:
   HealthResponse:
@@ -257,12 +331,39 @@ definitions:
     required:
       - status
 
+  AuthCredentials:
+    type: object
+    required:
+      - email
+      - password
+    properties:
+      email:
+        type: string
+        format: email
+        description: E-mail cadastrado.
+      password:
+        type: string
+        format: password
+        description: Senha da conta.
+
+  AccessToken:
+    type: object
+    required:
+      - access_token
+      - token_type
+    properties:
+      access_token:
+        type: string
+        description: JWT de acesso.
+      token_type:
+        type: string
+        example: Bearer
+
   TaskCreate:
     type: object
     required:
       - title
       - description
-      - user_id
     properties:
       title:
         type: string
@@ -275,9 +376,6 @@ definitions:
         type: boolean
         description: Estado de conclusão.
         default: false
-      user_id:
-        type: integer
-        description: Identificador do usuário proprietário.
 
   TaskUpdate:
     type: object
@@ -391,6 +489,13 @@ definitions:
       error:
         type: string
         description: Mensagem de erro.
+
+  JwtError:
+    type: object
+    properties:
+      msg:
+        type: string
+        description: Motivo pelo qual o token foi rejeitado.
 
   ValidationError:
     type: object
